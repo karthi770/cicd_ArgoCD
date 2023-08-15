@@ -1,0 +1,43 @@
+image: 'abhishekf5/maven-abhishek-docker-agent:v1'
+
+variables:
+  SONAR_HOST_URL: http://
+  SONAR_LOGIN: ${SONAR_LOGIN}
+
+# Define the default working directory for the pipeline
+before_script:
+- cd java-maven-sonar-argocd-helm-k8s/spring-boot-app
+
+stages:
+  - build
+  - test
+  - sonarqube
+
+build-job:
+  stage: build
+  script: 
+    - echo "Compiling the code..."
+    - mvn clean package
+
+unit-test-job:
+  stage: test
+  script:
+    - echo "Running unit tests...This will take about 60 seconds."
+    - mvn test
+
+code-quality-job:
+  stage: sonarqube
+  script: 
+    - echo "scanning code"
+    - mvn sonar:sonar -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_LOGIN}
+
+#docker:
+# stage: dockerization
+# image: docker:stable
+# services:
+#   - docker:dind
+# script:
+# - docker build -t gitlab-cicd-demo:latest
+# - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+# - docker tag gitlab-cicd-demo:latest $DOCKER_USERNAME/gitlab-cicd-demo:latest
+# - docker push $DOCKER_USERNAME/gitlab-cicd-demo:latest
